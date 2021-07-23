@@ -1,0 +1,110 @@
+const { query } = require('express')
+const express = require('express')
+const bodyParser=require('body-parser')
+var fs=require('fs');
+const app = express();
+
+app.use(bodyParser.urlencoded({extended:true}));
+
+app.get('/product_part', function (req, res) {
+    res.sendFile(__dirname + '/' + 'product_op.html')
+})
+
+app.post('/insert_product',function(req,res){
+    var product_name=req.body.proname;
+    var obj={};
+    var key=req.body.proid;
+    var newpro={
+        'name':product_name
+    }
+    obj[key]=newpro;
+
+    fs.readFile('users1.json',function(err,data){
+        data=JSON.parse(data);
+        data[key]=obj[key];
+        console.log(data);
+        var updateuser=JSON.stringify(data);
+        fs.writeFile('users1.json',updateuser,function(err){
+            res.end(JSON.stringify(data));
+        });
+    });
+});
+
+app.post('/display_particular_product_data',function(req,res){
+    fs.readFile("users1.json","utf8",function(err,data){
+        var a=JSON.parse(data);
+        var b=a[req.body.proid];
+        console.log(b);
+        res.end(JSON.stringify(b));
+    });
+});
+
+app.post('/delete_particular_product_data',function(req,res){
+    fs.readFile("users1.json","utf8",function(err,data){
+        data=JSON.parse(data);
+        delete data[req.body.prodelid];
+        console.log(data);
+        var updateuser=JSON.stringify(data);
+        fs.writeFile('users1.json',updateuser,function(err){
+            res.end(JSON.stringify(data));
+        });
+    });
+});
+
+app.get('/show_all_product_details',function(req,res){
+    fs.readFile('users1.json',function(err,data){
+        console.log(data);
+        res.end(data);
+    });
+});
+
+app.listen(3000);
+
+
+
+
+
+
+
+
+
+
+<html>
+    <head></head>
+    <body>
+        <h1 style="text-align: center;">PRODUCT CRUD OPERATION</h1><br>
+
+        <form action="http://localhost:3000/show_all_product_details" method="get">
+            <h2>CLICK TO CHECK ALL PRODUCT DATA</h2>
+            <input type="submit" value="SHOW ALL">
+        </form>
+        
+        <h2>ADD PRODUCT NAME OR UPDATE A PRODUCT</h2>
+        <form method="POST" action="http://localhost:3000/insert_product">
+            <h3>Enter Product-Id :</h3>
+            <input type="text" name="proid" id="proid">
+            <h3>Enter Product-Name:</h3>
+            <input type="text" name="proname" id="proname">
+            <input type="submit" value="INSERT/UPDATE">           
+        </form>
+
+        <form action="http://localhost:3000/display_particular_product_data" method="POST">
+            <h2>CHECK A PARTICUALR DATA</h2>
+            <h3>Enter Product-Id to check product:</h3>
+            <input type="text" name="proid" id="proid">
+            <input type="submit" value="CHECK">
+        </form>
+
+        <form action="http://localhost:3000/delete_particular_product_data" method="POST">
+            <h2>DELETE A PARTICUALR DATA</h2>
+            <h3>Enter Product-Id to delete product:</h3>
+            <input type="text" name="prodelid" id="prodelid">
+            <input type="submit" value="DELETE">
+        </form>
+
+        <form action="http://localhost:3000/product_part/category_part">
+            <input type="submit" value="GO TO CATEGORY SECTION">
+        </form>
+
+    </body>
+</html>
